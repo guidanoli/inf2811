@@ -145,7 +145,52 @@ Theorem progress' : forall t T,
 Proof.
   intros t.
   induction t; intros T Ht; auto.
-  (* FILL IN HERE *) Admitted.
+  - (* tm_var *)
+    inversion Ht; subst.
+    discriminate. (* variable is not well typed in empty context *)
+  - (* tm_app *)
+    right. (* application is never a value *)
+    inversion Ht; subst.
+    apply IHt1 in H2 as H3.
+    apply IHt2 in H4 as H5.
+    destruct H3.
+    + (* t1 is a value *)
+      destruct H5.
+      -- (* t2 is a value *)
+         apply (canonical_forms_fun _ T2 T H2) in H.
+         destruct H as [x [u H]].
+         exists <{ [x := t2] u }>.
+         rewrite H.
+         auto.
+      -- (* t2 can take a step *)
+         destruct H0 as [t2' H0].
+         exists <{ t1 t2' }>.
+         auto.
+    + (* t1 can take a step *)
+      destruct H as [t1' H].
+      exists <{ t1' t2 }>.
+      auto.
+  - (* tm_if *)
+    right. (* if is never a value *)
+    inversion Ht.
+    subst.
+    eapply IHt1 in H3 as Ht1.
+    destruct Ht1.
+    + (* t1 is a value *)
+      apply (canonical_forms_bool _ H3) in H as Ht1.
+      destruct Ht1; subst.
+      -- (* t1 = true *)
+         exists <{ t2 }>.
+         auto.
+      -- (* t1 = false *)
+         exists <{ t3 }>.
+         auto.
+    + (* t1 can take a step *)
+      destruct H as [t1' H].
+      exists <{ if t1' then t2 else t3 }>.
+      auto.
+Qed.
+    
 (** [] *)
 
 (* ################################################################# *)
