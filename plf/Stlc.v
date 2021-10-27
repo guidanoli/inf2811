@@ -824,7 +824,15 @@ Example typing_example_2_full :
           (y (y x)) \in
     (Bool -> (Bool -> Bool) -> Bool).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply T_Abs.
+  apply T_Abs.
+  apply T_App with <{ Bool }>.
+  apply T_Var. trivial.
+  apply T_App with <{ Bool }>.
+  apply T_Var. trivial.
+  apply T_Var. trivial.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, standard (typing_example_3)
@@ -846,7 +854,13 @@ Example typing_example_3 :
                (y (x z)) \in
       T.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  exists <{ (Bool -> Bool) -> ((Bool -> Bool) -> (Bool -> Bool)) }>.
+  repeat apply T_Abs.
+  apply T_App with <{ Bool }>. auto.
+  apply T_App with <{ Bool }>. auto.
+  auto.
+Qed.
+
 (** [] *)
 
 (** We can also show that some terms are _not_ typable.  For example,
@@ -888,7 +902,22 @@ Example typing_nonexample_3 :
         empty |-
           \x:S, x x \in T).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros Hc. destruct Hc as [S [T Hc]].
+  inversion Hc; subst; clear Hc.
+  inversion H4; subst; clear H4.
+  inversion H5; subst; clear H5.
+  inversion H2; subst; clear H2.
+  rewrite H1 in H3. clear H1.
+  injection H3 as H3.
+  generalize dependent T1.
+  induction T2; intros T1 H.
+  - discriminate.
+  - injection H as H1 H2.
+    subst.
+    apply IHT2_1 with T1.
+    assumption.
+Qed.
+  
 (** [] *)
 
 End STLC.
