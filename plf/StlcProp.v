@@ -377,7 +377,24 @@ Proof.
   remember (x |-> U; Gamma) as Gamma'.
   generalize dependent Gamma.
   induction Ht; intros Gamma' G; simpl; eauto.
- (* FILL IN HERE *) Admitted.
+  - (* tm_var *)
+    destruct (eqb_stringP x x0); subst.
+    + (* x=x0 *)
+      rewrite update_eq in H.
+      injection H as H. subst.
+      apply weakening_empty.
+      apply Hv.
+    + (* x<>x0 *)
+      rewrite update_neq in H; auto.
+  - (* tm_if *)
+    destruct (eqb_stringP x x0); subst; apply T_Abs.
+    + (* x=x0 *)
+      rewrite update_shadow in Ht. assumption.
+    + (* x<>x0 *)
+      apply IHHt.
+      rewrite update_permute; auto.
+Qed.
+
 (** [] *)
 
 (* ================================================================= *)
