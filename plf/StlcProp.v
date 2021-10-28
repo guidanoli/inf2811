@@ -480,7 +480,11 @@ Qed.
     You can state your counterexample informally in words, with a brief
     explanation. *)
 
-(* FILL IN HERE *)
+(* 
+    (\x:T, x) has type (T -> T)
+    y has type T2, such that T <> T2
+    (\x:T.x) y has no type but can take a step to y, which has type T2
+*)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_subject_expansion_stlc : option (nat*string) := None.
@@ -505,7 +509,13 @@ Proof.
   intros t t' T Hhas_type Hmulti. unfold stuck.
   intros [Hnf Hnot_val]. unfold normal_form in Hnf.
   induction Hmulti.
-  (* FILL IN HERE *) Admitted.
+  - (* multi_refl *)
+    apply progress in Hhas_type.
+    destruct Hhas_type; contradiction.
+  - (* multi_step *)
+    apply (preservation x0 y0 _ Hhas_type) in H. auto.
+Qed.
+
 (** [] *)
 
 (* ################################################################# *)
