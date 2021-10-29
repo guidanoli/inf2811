@@ -773,7 +773,18 @@ Proof.
     Coq theorems).
     You can write [Admitted] for the proofs. *)
 
-(* FILL IN HERE *)
+Theorem  progress_ex : forall t T,
+  empty |- t \in T ->
+  (value t) \/ (exists t', t --> t').
+Proof.
+Admitted.
+
+Theorem preservation_ex : forall t t' T,
+  empty |- t \in T ->
+  t --> t' ->
+  empty |- t' \in T.
+Proof.
+Admitted.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_progress_preservation_statement : option (nat*string) := None.
@@ -797,11 +808,22 @@ and the following typing rule:
     false, give a counterexample.
 
       - Determinism of [step]
-(* FILL IN HERE *)
+
+   becomes false.
+   if true then false then true --> false (ST_IfTrue)
+   if true then false then true --> zap (ST_Zap)
+
       - Progress
-(* FILL IN HERE *)
+
+   remains true.
+   In fact, every term makes progress by ST_Zap.
+
       - Preservation
-(* FILL IN HERE *)
+
+   becomes false.
+   true --> zap
+   empty |- true \in Bool
+   empty |- zap \in (Bool -> Bool), for example
 *)
 
 (* Do not modify the following line: *)
@@ -825,11 +847,23 @@ Definition manual_grade_for_stlc_variation1 : option (nat*string) := None.
     false, give a counterexample.
 
       - Determinism of [step]
-(* FILL IN HERE *)
+
+   remains true.
+   previously there was no rule that reduced (\x:A, x).
+   now it can reduce to foo and only to foo.
+
       - Progress
-(* FILL IN HERE *)
+
+   remains true.
+   previously (\x:A, x) could not reduce to any other term.
+   now it reduces to foo. We don't consider foo in progress
+   because it is not well typed.
+
       - Preservation
-(* FILL IN HERE *)
+
+   becomes false.
+   (\x:Bool, x) is well typed (Bool -> Bool).
+   by ST_Foo1, it becomes foo, which has no type.
 *)
 
 (* Do not modify the following line: *)
@@ -845,11 +879,22 @@ Definition manual_grade_for_stlc_variation2 : option (nat*string) := None.
     false, give a counterexample.
 
       - Determinism of [step]
-(* FILL IN HERE *)
+
+   Remains true.
+   Since we've essentially only removed a rule, there are now just
+   fewer ways to reduce terms, so it should not break determinism.
+
       - Progress
-(* FILL IN HERE *)
+
+   Becomes false.
+   The term [if (true then (\x:Bool, x) else (\x:Bool, if x then false else true)) true]
+   has type (Bool) but cannot take a step because t1 cannot take a step and it is not
+   a value.
+
       - Preservation
-(* FILL IN HERE *)
+
+   Remains true.
+   There are now just fewer ways to take a step, so nothing changes with preservation.
 *)
 
 (* Do not modify the following line: *)
@@ -870,11 +915,22 @@ Definition manual_grade_for_stlc_variation3 : option (nat*string) := None.
     false, give a counterexample.
 
       - Determinism of [step]
-(* FILL IN HERE *)
+
+   Becomes false.
+   (if true then false else true) --> false (ST_IfTrue)
+   (if true then false else true) --> true (ST_FunnyIfTrue)
+
       - Progress
-(* FILL IN HERE *)
+
+   Remains true.
+   Now, for well-typed terms of form [if true then t1 else t2]
+   it can also take a step directly to true, which is a value.
+
       - Preservation
-(* FILL IN HERE *)
+
+   Becomes false.
+   (if true then (\x:Bool, x) else (\x:Bool, x)) \in (Bool -> Bool)
+   --> true (by ST_FunnyIfTrue) \in (Bool).
 *)
 (** [] *)
 
@@ -894,11 +950,25 @@ Definition manual_grade_for_stlc_variation3 : option (nat*string) := None.
     false, give a counterexample.
 
       - Determinism of [step]
-(* FILL IN HERE *)
+
+   Remains true.
+   It only messes with the typing, which has nothing to do with the
+   determinism of [step].
+
       - Progress
-(* FILL IN HERE *)
+
+   Remains true.
+   Even though it is wrongly typed, t1 t2 can still take a step because
+   t1 \in Bool->Bool->Bool and t2 \in Bool so t1 is an abstraction and
+   ST_App can be called.
+
       - Preservation
-(* FILL IN HERE *)
+
+   Becomes false.
+   t1 := (\x:Bool, (\y:Bool, x))
+   t2 := true
+   [t1 t2] \in Bool --> (\y:Bool, true) \in Bool->Bool
+
 *)
 (** [] *)
 
@@ -918,11 +988,22 @@ Definition manual_grade_for_stlc_variation3 : option (nat*string) := None.
     false, give a counterexample.
 
       - Determinism of [step]
-(* FILL IN HERE *)
+
+   Remains true.
+   It only messes with the typing, which has nothing to do with the
+   determinism of [step].
+
       - Progress
-(* FILL IN HERE *)
+
+   Becomes false.
+   (false false) \in Bool
+   but there is no rule that reduces it.
+
       - Preservation
-(* FILL IN HERE *)
+
+   Remains true.
+   Since terms typed with this rule cannot reduce, nothing changes.
+
 *)
 (** [] *)
 
@@ -940,11 +1021,20 @@ Definition manual_grade_for_stlc_variation3 : option (nat*string) := None.
     false, give a counterexample.
 
       - Determinism of [step]
-(* FILL IN HERE *)
+
+   Remains true.
+   It only messes with the typing, which has nothing to do with the
+   determinism of [step].
+
       - Progress
-(* FILL IN HERE *)
+
+   Becomes false.
+   [if (\x:Bool, x) then false else true] is typed as (Bool) but
+   cannot take a step.
+
       - Preservation
-(* FILL IN HERE *)
+
+   Remains true.
 *)
 (** [] *)
 
