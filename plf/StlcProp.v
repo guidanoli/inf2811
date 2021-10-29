@@ -531,7 +531,28 @@ Theorem unique_types : forall Gamma e T T',
   Gamma |- e \in T' ->
   T = T'.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros Gamma e T T' HT HT'.
+  generalize dependent T'.
+  induction HT; intros T' HT';
+  inversion HT'; subst; auto.
+  - (* T_Var *) 
+    rewrite H in H2.
+    injection H2 as H2.
+    auto.
+  - (* T_Abs *)
+    f_equal.
+    auto.
+  - (* T_App *)
+    assert (Haux: <{ T2 -> T1 }> = <{ T2 -> T' }> -> T1 = T').
+    { intros Haux. injection Haux as Haux. auto. }
+    apply Haux.
+    apply IHHT1.
+    assert (Haux2: T2 = T3).
+    { apply IHHT2. auto.  }
+    subst.
+    auto.
+Qed.
+
 (** [] *)
 
 (* ################################################################# *)
