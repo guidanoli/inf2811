@@ -1130,6 +1130,8 @@ Inductive has_type (ST : store_ty) : context -> tm -> ty -> Prop :=
 
 where "Gamma ';' ST '|-' t '\in' T" := (has_type ST Gamma t T).
 
+(* ATÈ AQUI A AULA DE 1/11 *)
+
 Hint Constructors has_type : core.
 
 (** Of course, these typing rules will accurately predict the results
