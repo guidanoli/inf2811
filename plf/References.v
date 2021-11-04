@@ -949,7 +949,7 @@ Definition context := partial_map ty.
 (** Having extended our syntax and reduction rules to accommodate
     references, our last job is to write down typing rules for the new
     constructs (and, of course, to check that these rules are sound!).
-    Naturalurally, the key question is, "What is the type of a location?"
+    Naturally, the key question is, "What is the type of a location?"
 
     First of all, notice that this question doesn't arise when
     typechecking terms that programmers actually
@@ -1017,7 +1017,13 @@ Definition context := partial_map ty.
 (** **** Exercise: 2 stars, standard (cyclic_store)
 
     Can you find a term whose reduction will create this particular
-    cyclic store? *)
+    cyclic store?
+
+    let f = ref (\x:Nat. x) in
+      let g = ref (\x:Nat. (!f) x) in
+         f := (\x:Nat. (!g) x)
+
+    *)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_cyclic_store : option (nat*string) := None.
