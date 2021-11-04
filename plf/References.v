@@ -266,7 +266,7 @@ Fixpoint subst (x : string) (s : tm) (t : tm) : tm :=
   | tm_var y =>
       if eqb_string x y then s else t
   | <{\y:T, t1}> =>
-      if eqb_string x y then t else <{\y:T, [x:=s] t1}>
+      if eqb_string x y then t else <{\y:T, [x:=s] t1}> (* shadowing *)
   | <{t1 t2}> =>
       <{([x:=s] t1) ([x:=s] t2)}>
   (* numbers *)
@@ -445,9 +445,8 @@ Notation "t1 ; t2" := (tseq t1 t2) (in custom stlc at level 3).
     execution where the first two [let]s have finished and the third
     one is about to begin. *)
 
-(* FILL IN HERE
-
-    [] *)
+(*  0 => 0
+    1 => 0  *)
 
 (* ================================================================= *)
 (** ** References to Compound Types *)
@@ -503,7 +502,8 @@ Notation "t1 ; t2" := (tseq t1 t2) (in custom stlc at level 3).
 
 would it behave the same? *)
 
-(* FILL IN HERE *)
+(* No, because [!a] would reference the current array and when querying
+   a value whose key is not equal to m, it would never reduce to a value *)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_compact_update : option (nat*string) := None.
@@ -560,7 +560,25 @@ Definition manual_grade_for_compact_update : option (nat*string) := None.
 
     Show how this can lead to a violation of type safety. *)
 
-(* FILL IN HERE *)
+(* Supose we have a term called [unref t] which deallocates the cell
+   reference by t, which must have type Ref T.
+   
+1  let r = ref 0 in
+2    let f = \_:Unit.(!r) in
+3       unref r;
+        [...]
+4       f unit 
+
+    At line 1, we create a reference to a natural number
+    At line 2, we create a function that returns the value in the cell
+               referenced by r, which should be a natural number
+    At line 3, we unreference r so it no longer points to a valid cell
+    Then we could do a bunch of stuff, which could populate the cell
+    previously referenced by r with another value of another type.
+    At line 4, we call f, which unreferences r.
+
+    This program is well typed but could lead to undesired behaviour.
+*)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_type_safety_violation : option (nat*string) := None.
