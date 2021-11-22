@@ -1239,7 +1239,10 @@ Definition store_well_typed (ST:store_ty) (st:store) :=
     different store typings [ST1] and [ST2] such that both
     [ST1 |- st] and [ST2 |- st]? *)
 
-(* FILL IN HERE *)
+(* st = (lambda x:Bool. (location 1) x; lambda x:Bool. (location 0) x)
+   ST1 = (Bool->Bool; Bool->Bool)
+   ST2 = (Bool->Nat; Bool->Nat)
+*)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_store_not_unique : option (nat*string) := None.
@@ -1530,6 +1533,12 @@ Proof.
 Qed.
 
 (** And here, at last, is the preservation theorem and proof: *)
+
+(** Maybe use...
+
+Ltac splits n := match n with | O => fail | S O => idtac | S ?n' => split; [| splits n'] end. 
+
+ *)
 
 Theorem preservation : forall ST t t' T st st',
   empty ; ST |- t \in T ->
@@ -1875,12 +1884,15 @@ Qed.
     sure it gives the correct result when applied to the argument
     [4].) *)
 
-Definition factorial : tm
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition factorial : tm :=
+  <{ (x := ref (\y : Nat, y));
+     (x := (\y : Nat, if0 y then 1 else y * ((!x) (pred y))));
+     (!x) }>.
 
 Lemma factorial_type : empty; nil |- factorial \in (Nat -> Nat).
 Proof with eauto.
-  (* FILL IN HERE *) Admitted.
+  unfold factorial.
+Admitted.
 
 (** If your definition is correct, you should be able to just
     uncomment the example below; the proof should be fully
