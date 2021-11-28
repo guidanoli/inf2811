@@ -659,7 +659,12 @@ From PLF Require Import Stlc.
            else if (pred x)=0 then 0
            else 1 + (halve (pred (pred x)))
 
-    (* FILL IN HERE *)
+      halve = fix (\h:Nat->Nat,
+                     \x:Nat,
+                       if x=0 then 0
+                       else if (pred x)=0 then 0
+                       else 1 + (h (pred (pred x))))
+
 *)
 (** [] *)
 
@@ -669,7 +674,21 @@ From PLF Require Import Stlc.
     through to reduce to a normal form (assuming the usual reduction
     rules for arithmetic operations).
 
-    (* FILL IN HERE *)
+    fact 1
+
+    (fix (\f:Nat->Nat, \n:Nat, if0 n then 1 else n * f(n-1))) 1
+
+ [-->] [ST_FixAbs]
+
+    1 * (fix (\f:Nat->Nat, \n:Nat, if0 n then 1 else n * f(n-1))) 0
+
+[-->] ST_FixAbs
+
+    1 * 1
+
+[--->] ST_MultNats
+
+    1
 *)
 (** [] *)
 
@@ -1130,6 +1149,8 @@ Fixpoint subst (x : string) (s : tm) (t : tm) : tm :=
   (* Complete the following cases. *)
 
   (* pairs *)
+  | <{(t1, t2)}> =>
+      <{ (([x:=s] t1), ([x:=s] t2)) }>
   (* FILL IN HERE *)
   (* let *)
   (* FILL IN HERE *)
@@ -1256,7 +1277,13 @@ Inductive step : tm -> tm -> Prop :=
   (* Add rules for the following extensions. *)
 
   (* pairs *)
-  (* FILL IN HERE *)
+  | ST_Pair1 : forall t1 t1' t2,
+      t1 --> t1' ->
+      <{ (t1, t2) }> --> <{ (t1', t2) }>
+  | ST_Pair2 : forall v1 t2 t2',
+      value v1 ->
+      t2 --> t2' ->
+      <{ (v1, t2) }> --> <{ (v1, t2') }>
   (* let *)
   (* FILL IN HERE *)
   (* fix *)
@@ -1340,7 +1367,10 @@ Inductive has_type : context -> tm -> ty -> Prop :=
   (* Add rules for the following extensions. *)
 
   (* pairs *)
-  (* FILL IN HERE *)
+  | T_Pair : forall Gamma t1 t2 T1 T2,
+      Gamma |- t1 \in T1 ->
+      Gamma |- t2 \in T2 ->
+      Gamma |- (t1, t2) \in (T1 * T2)
   (* let *)
   (* FILL IN HERE *)
   (* fix *)
