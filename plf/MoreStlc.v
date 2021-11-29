@@ -1967,7 +1967,33 @@ Proof with eauto.
   (* Complete the proof. *)
 
   (* pairs *)
-  (* FILL IN HERE *)
+  - (* T_Pair *)
+    destruct IHHt1...
+    + (* t1 is a value *)
+      destruct IHHt2...
+      * (* t2 can take a step *)
+        right. destruct H0 as [t2' H2].
+        exists <{ (t1, t2') }>...
+    + (* t1 can take a step *)
+      right. destruct H as [t1' H1].
+      exists <{ (t1', t2) }>...
+  - (* T_Fst *)
+    right. destruct IHHt...
+    + (* t is a value *)
+      inversion Ht; subst; inversion H; subst.
+      exists <{ t1 }>...
+    + (* t can take a step *)
+      destruct H as [t' H].
+      exists <{ t'.fst }>...
+  - (* T_Snd *)
+    right. destruct IHHt...
+    + (* t is a value *)
+      inversion Ht; subst; inversion H; subst.
+      exists <{ t2 }>...
+    + (* t can take a step *)
+      destruct H as [t' H].
+      exists <{ t'.snd }>...
+      
   (* let *)
   (* FILL IN HERE *)
   (* fix *)
@@ -2133,8 +2159,12 @@ Proof with eauto.
 
   (* Complete the proof. *)
 
-  (* fst and snd *)
-  (* FILL IN HERE *)
+  - (* T_Fst *)
+    inversion HT; subst.
+    auto.
+  - (* T_Snd *)
+    inversion HT; subst.
+    auto.
   (* let *)
   (* FILL IN HERE *)
   (* fix *)
