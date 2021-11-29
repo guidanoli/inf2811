@@ -1155,9 +1155,10 @@ Fixpoint subst (x : string) (s : tm) (t : tm) : tm :=
       <{ ([x:=s] t).fst }>
   | <{t.snd}> =>
       <{ ([x:=s] t).snd }>
-  (* FILL IN HERE *)
   (* let *)
-  (* FILL IN HERE *)
+  | <{ let y = t1 in t2 }> =>
+      if eqb_string x y then <{ let y = ([x:=s] t1) in t2 }>
+                        else <{ let y = ([x:=s] t1) in ([x:=s] t2) }>
   (* fix *)
   (* FILL IN HERE *)
   | _ => t  (* ... and delete this line when you finish the exercise *)
@@ -1303,7 +1304,12 @@ Inductive step : tm -> tm -> Prop :=
       value v2 ->
       <{ (v1, v2).snd }> --> <{ v2 }>
   (* let *)
-  (* FILL IN HERE *)
+  | ST_Let1 : forall x t1 t1' t2,
+      t1 --> t1' ->
+      <{ let x = t1 in t2 }> --> <{ let x = t1' in t2 }>
+  | ST_Let2 : forall x v1 t2,
+      value v1 ->
+      <{ let x = v1 in t2 }> --> <{ [x:=v1]t2 }>
   (* fix *)
   (* FILL IN HERE *)
 
@@ -1396,7 +1402,10 @@ Inductive has_type : context -> tm -> ty -> Prop :=
       Gamma |- t \in (T1 * T2) ->
       Gamma |- t.snd \in T2
   (* let *)
-  (* FILL IN HERE *)
+  | T_Let : forall Gamma x t1 t2 T1 T2,
+      Gamma |- t1 \in T1 ->
+      (x |-> T1; Gamma) |- t2 \in T2 ->
+      Gamma |- (let x = t1 in t2) \in T2
   (* fix *)
   (* FILL IN HERE *)
 
@@ -1545,16 +1554,14 @@ Definition test :=
 
 Example typechecks :
   empty |- test \in Nat.
-Proof. unfold test. eauto 15. (* FILL IN HERE *) Admitted.
+Proof. unfold test. eauto 15. Qed.
 (* GRADE_THEOREM 0.25: typechecks *)
 
 Example reduces :
   test -->* 6.
 Proof.
-(* 
   unfold test. normalize.
-*)
-(* FILL IN HERE *) Admitted.
+Qed.
 (* GRADE_THEOREM 0.25: reduces *)
 
 End LetTest.
@@ -1995,7 +2002,9 @@ Proof with eauto.
       exists <{ t'.snd }>...
       
   (* let *)
-  (* FILL IN HERE *)
+  - right. destruct IHHt1...
+    destruct H as [t1' H].
+    exists <{ let x0 = t1' in t2 }>...
   (* fix *)
   (* FILL IN HERE *)
 (* FILL IN HERE *) Admitted.
@@ -2113,6 +2122,15 @@ Proof with eauto.
 
   (* Complete the proof. *)
 
+  - (* tm_let *)
+    rename s into y.
+    destruct (eqb_stringP x y); subst.
+    + (* x=y *)
+      rewrite update_shadow in H6.
+      eapply T_Let...
+    + (* x<>y *)
+      rewrite update_permute in H6; [|assumption].
+      eapply T_Let...
   (* FILL IN HERE *) Admitted.
 
 (* Do not modify the following line: *)
@@ -2166,7 +2184,8 @@ Proof with eauto.
     inversion HT; subst.
     auto.
   (* let *)
-  (* FILL IN HERE *)
+  - (* T_Let *)
+    eapply substitution_preserves_typing...
   (* fix *)
   (* FILL IN HERE *)
 (* FILL IN HERE *) Admitted.
