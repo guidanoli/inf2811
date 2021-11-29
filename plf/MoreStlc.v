@@ -1151,6 +1151,10 @@ Fixpoint subst (x : string) (s : tm) (t : tm) : tm :=
   (* pairs *)
   | <{(t1, t2)}> =>
       <{ (([x:=s] t1), ([x:=s] t2)) }>
+  | <{t.fst}> =>
+      <{ ([x:=s] t).fst }>
+  | <{t.snd}> =>
+      <{ ([x:=s] t).snd }>
   (* FILL IN HERE *)
   (* let *)
   (* FILL IN HERE *)
@@ -1284,6 +1288,20 @@ Inductive step : tm -> tm -> Prop :=
       value v1 ->
       t2 --> t2' ->
       <{ (v1, t2) }> --> <{ (v1, t2') }>
+  | ST_Fst1 : forall t t',
+      t --> t' ->
+      <{ t.fst }> --> <{ t'.fst }>
+  | ST_Fst2 : forall v1 v2,
+      value v1 ->
+      value v2 ->
+      <{ (v1, v2).fst }> --> <{ v1 }>
+  | ST_Snd1 : forall t t',
+      t --> t' ->
+      <{ t.snd }> --> <{ t'.snd }>
+  | ST_Snd2 : forall v1 v2,
+      value v1 ->
+      value v2 ->
+      <{ (v1, v2).snd }> --> <{ v2 }>
   (* let *)
   (* FILL IN HERE *)
   (* fix *)
@@ -1371,6 +1389,12 @@ Inductive has_type : context -> tm -> ty -> Prop :=
       Gamma |- t1 \in T1 ->
       Gamma |- t2 \in T2 ->
       Gamma |- (t1, t2) \in (T1 * T2)
+  | T_Fst : forall Gamma t T1 T2,
+      Gamma |- t \in (T1 * T2) ->
+      Gamma |- t.fst \in T1
+  | T_Snd : forall Gamma t T1 T2,
+      Gamma |- t \in (T1 * T2) ->
+      Gamma |- t.snd \in T2
   (* let *)
   (* FILL IN HERE *)
   (* fix *)
@@ -1476,15 +1500,13 @@ Proof.
      to increase the max search depth of [auto] from the
      default 5 to 10. *)
   auto 10.
-(* FILL IN HERE *) Admitted.
+Qed.
 
 Example numtest_reduces :
   test -->* 5.
 Proof.
-(* 
   unfold test. normalize.
-*)
-(* FILL IN HERE *) Admitted.
+Qed.
 
 End Numtest.
 
@@ -1499,16 +1521,14 @@ Definition test :=
 
 Example typechecks :
   empty |- test \in Nat.
-Proof. unfold test. eauto 15. (* FILL IN HERE *) Admitted.
+Proof. unfold test. eauto 15. Qed.
 (* GRADE_THEOREM 0.25: typechecks *)
 
 Example reduces :
   test -->* 6.
 Proof.
-(* 
-  unfold test. normalize.
-*)
-(* FILL IN HERE *) Admitted.
+  unfold test. normalize. Qed.
+
 (* GRADE_THEOREM 0.25: reduces *)
 
 End Prodtest.
