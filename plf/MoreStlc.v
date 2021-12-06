@@ -55,24 +55,25 @@ From PLF Require Import Stlc.
 
        t ::=                Terms
            | ...               (other terms same as before)
-           | let x=t in t      let-binding
+           | let x=t₁ in t₂     let-binding
+
 *)
 
 (**
     Reduction:
 
                                  t1 --> t1'
-                     ----------------------------------               (ST_Let1)
+                     ----------------------------------           (ST_Let1)
                      let x=t1 in t2 --> let x=t1' in t2
 
-                        ----------------------------              (ST_LetValue)
+                        ----------------------------          (ST_LetValue)
                         let x=v1 in t2 --> [x:=v1]t2
 
     Typing:
 
-             Gamma |- t1 \in T1      x|->T1; Gamma |- t2 \in T2
-             --------------------------------------------------        (T_Let)
-                        Gamma |- let x=t1 in t2 \in T2
+             Gamma |= t1 \in T1      x|->T1; Gamma |= t2 \in T2
+             --------------------------------------------------    (T_Let)
+                        Gamma |= let x=t1 in t2 \in T2
 *)
 
 (* ================================================================= *)
@@ -126,25 +127,25 @@ From PLF Require Import Stlc.
     projection behave.
 
                               t1 --> t1'
-                         --------------------                        (ST_Pair1)
+                         --------------------                    (ST_Pair1)
                          (t1,t2) --> (t1',t2)
 
                               t2 --> t2'
-                         --------------------                        (ST_Pair2)
+                         --------------------                    (ST_Pair2)
                          (v1,t2) --> (v1,t2')
 
                                t1 --> t1'
-                           ------------------                        (ST_Fst1)
+                           ------------------                    (ST_Fst1)
                            t1.fst --> t1'.fst
 
-                          ------------------                       (ST_FstPair)
+                          ------------------                   (ST_FstPair)
                           (v1,v2).fst --> v1
 
                                t1 --> t1'
-                           ------------------                        (ST_Snd1)
+                           ------------------                    (ST_Snd1)
                            t1.snd --> t1'.snd
 
-                          ------------------                       (ST_SndPair)
+                          ------------------                   (ST_SndPair)
                           (v1,v2).snd --> v2
 *)
 
@@ -167,17 +168,17 @@ From PLF Require Import Stlc.
 
 (** The typing rules for pairs and projections are straightforward.
 
-               Gamma |- t1 \in T1     Gamma |- t2 \in T2
-               -----------------------------------------               (T_Pair)
-                       Gamma |- (t1,t2) \in T1*T2
+               Gamma |= t1 \in T1     Gamma |= t2 \in T2
+               -----------------------------------------           (T_Pair)
+                       Gamma |= (t1,t2) \in T1*T2
 
-                        Gamma |- t0 \in T1*T2
-                        ----------------------                         (T_Fst)
-                        Gamma |- t0.fst \in T1
+                        Gamma |= t0 \in T1*T2
+                        ----------------------                     (T_Fst)
+                        Gamma |= t0.fst \in T1
 
-                        Gamma |- t0 \in T1*T2
-                        ----------------------                         (T_Snd)
-                        Gamma |- t0.snd \in T2
+                        Gamma |= t0 \in T1*T2
+                        ----------------------                     (T_Snd)
+                        Gamma |= t0.snd \in T2
 *)
 
 (** [T_Pair] says that [(t1,t2)] has type [T1*T2] if [t1] has
@@ -214,8 +215,8 @@ From PLF Require Import Stlc.
 
     Typing:
 
-                         ----------------------                        (T_Unit)
-                         Gamma |- unit \in Unit
+                         ----------------------                    (T_Unit)
+                         Gamma |= unit \in Unit
 *)
 
 (** It may seem a little strange to bother defining a type that
@@ -244,6 +245,9 @@ From PLF Require Import Stlc.
    one of two given types, e.g.:
 
        Nat + Bool
+
+       inl Bool 3 : Nat + Bool
+       inr Nat true : Nat + Bool
 *)
 (** We create elements of these types by _tagging_ elements of
     the component types.  For example, if [n] is a [Nat] then [inl n]
@@ -251,8 +255,8 @@ From PLF Require Import Stlc.
     [inr b] is a [Nat+Bool].  The names of the tags [inl] and [inr]
     arise from thinking of them as functions
 
-       inl \in Nat  -> Nat + Bool
-       inr \in Bool -> Nat + Bool
+       inl \in Bool  -> Nat + Bool
+       inr \in Nat -> Nat + Bool
 
     that "inject" elements of [Nat] or [Bool] into the left and right
     components of the sum type [Nat+Bool].  (But note that we don't
@@ -317,42 +321,43 @@ From PLF Require Import Stlc.
 (** Reduction:
 
                                t1 --> t1'
-                        ------------------------                       (ST_Inl)
+                        ------------------------                   (ST_Inl)
                         inl T2 t1 --> inl T2 t1'
 
                                t2 --> t2'
-                        ------------------------                       (ST_Inr)
+                        ------------------------                   (ST_Inr)
                         inr T1 t2 --> inr T1 t2'
 
                                t0 --> t0'
-               -------------------------------------------            (ST_Case)
+               -------------------------------------------        (ST_Case)
                 case t0 of inl x1 => t1 | inr x2 => t2 -->
                case t0' of inl x1 => t1 | inr x2 => t2
 
-            -----------------------------------------------        (ST_CaseInl)
+            -----------------------------------------------    (ST_CaseInl)
             case (inl T2 v1) of inl x1 => t1 | inr x2 => t2
                            -->  [x1:=v1]t1
 
-            -----------------------------------------------        (ST_CaseInr)
+            -----------------------------------------------    (ST_CaseInr)
             case (inr T1 v2) of inl x1 => t1 | inr x2 => t2
                            -->  [x2:=v2]t2
 *)
 
 (** Typing:
 
-                          Gamma |- t1 \in T1
-                   ------------------------------                       (T_Inl)
-                   Gamma |- inl T2 t1 \in T1 + T2
+                          Gamma |= t1 \in T1
+                   ------------------------------                   (T_Inl)
+                   Gamma |= inl T2 t1 \in T1 + T2
 
-                          Gamma |- t2 \in T2
-                   -------------------------------                      (T_Inr)
-                    Gamma |- inr T1 t2 \in T1 + T2
+                          Gamma |= t2 \in T2
+                   -------------------------------                  (T_Inr)
+                    Gamma |= inr T1 t2 \in T1 + T2
 
-                        Gamma |- t0 \in T1+T2
-                     x1|->T1; Gamma |- t1 \in T3
-                     x2|->T2; Gamma |- t2 \in T3
-         ------------------------------------------------------         (T_Case)
-         Gamma |- case t0 of inl x1 => t1 | inr x2 => t2 \in T3
+                        Gamma |= t0 \in T1+T2
+                     x1|->T1; Gamma |= t1 \in T3
+                     x2|->T2; Gamma |= t2 \in T3
+         ------------------------------------------------------     (T_Case)
+         Gamma |= case t0 of inl x1 => t1 | inr x2 => t2 \in T3
+
 
     We use the type annotations on [inl] and [inr] to make the typing
     relation deterministic (each term has at most one type), as we
@@ -428,41 +433,41 @@ From PLF Require Import Stlc.
 (** Reduction:
 
                                 t1 --> t1'
-                       --------------------------                    (ST_Cons1)
+                       --------------------------                (ST_Cons1)
                        cons t1 t2 --> cons t1' t2
 
                                 t2 --> t2'
-                       --------------------------                    (ST_Cons2)
+                       --------------------------                (ST_Cons2)
                        cons v1 t2 --> cons v1 t2'
 
                               t1 --> t1'
-                -------------------------------------------         (ST_Lcase1)
+                -------------------------------------------     (ST_Lcase1)
                  (case t1 of nil => t2 | xh::xt => t3) -->
                 (case t1' of nil => t2 | xh::xt => t3)
 
-               ------------------------------------------          (ST_LcaseNil)
+               ------------------------------------------      (ST_LcaseNil)
                (case nil T1 of nil => t2 | xh::xt => t3)
                                 --> t2
 
-            ------------------------------------------------     (ST_LcaseCons)
+            ------------------------------------------------  (ST_LcaseCons)
             (case (cons vh vt) of nil => t2 | xh::xt => t3)
                           --> [xh:=vh,xt:=vt]t3
 *)
 
 (** Typing:
 
-                        ---------------------------                     (T_Nil)
-                        Gamma |- nil T1 \in List T1
+                        ---------------------------                 (T_Nil)
+                        Gamma |= nil T1 \in List T1
 
-             Gamma |- t1 \in T1      Gamma |- t2 \in List T1
-             -----------------------------------------------           (T_Cons)
-                    Gamma |- cons t1 t2 \in List T1
+             Gamma |= t1 \in T1      Gamma |= t2 \in List T1
+             -----------------------------------------------       (T_Cons)
+                    Gamma |= cons t1 t2 \in List T1
 
-                        Gamma |- t1 \in List T1
-                        Gamma |- t2 \in T2
-                (h|->T1; t|->List T1; Gamma) |- t3 \in T2
-          ---------------------------------------------------         (T_Lcase)
-          Gamma |- (case t1 of nil => t2 | h::t => t3) \in T2
+                        Gamma |= t1 \in List T1
+                        Gamma |= t2 \in T2
+                (h|->T1; t|->List T1; Gamma) |= t3 \in T2
+          ---------------------------------------------------     (T_Lcase)
+          Gamma |= (case t1 of nil => t2 | h::t => t3) \in T2
 *)
 
 (* ================================================================= *)
@@ -558,9 +563,9 @@ From PLF Require Import Stlc.
 
    Typing:
 
-                           Gamma |- t1 \in T1->T1
+                           Gamma |= t1 \in T1->T1
                            ----------------------                    (T_Fix)
-                           Gamma |- fix t1 \in T1
+                           Gamma |= fix t1 \in T1
 *)
 
 (** Let's see how [ST_FixAbs] works by reducing [fact 3 = fix F 3],
@@ -766,15 +771,15 @@ From PLF Require Import Stlc.
    Reduction:
 
                               ti --> ti'
-                 ------------------------------------                  (ST_Rcd)
+                 ------------------------------------              (ST_Rcd)
                      {i1=v1, ..., im=vm, in=ti , ...}
                  --> {i1=v1, ..., im=vm, in=ti', ...}
 
                               t0 --> t0'
-                            --------------                           (ST_Proj1)
+                            --------------                       (ST_Proj1)
                             t0.i --> t0'.i
 
-                      -------------------------                    (ST_ProjRcd)
+                      -------------------------                (ST_ProjRcd)
                       {..., i=vi, ...}.i --> vi
 *)
 
@@ -786,13 +791,13 @@ From PLF Require Import Stlc.
 
 (** The typing rules are also simple:
 
-            Gamma |- t1 \in T1     ...     Gamma |- tn \in Tn
-          ----------------------------------------------------          (T_Rcd)
-          Gamma |- {i1=t1, ..., in=tn} \in {i1:T1, ..., in:Tn}
+            Gamma |= t1 \in T1     ...     Gamma |= tn \in Tn
+          ----------------------------------------------------      (T_Rcd)
+          Gamma |= {i1=t1, ..., in=tn} \in {i1:T1, ..., in:Tn}
 
-                    Gamma |- t0 \in {..., i:Ti, ...}
-                    --------------------------------                   (T_Proj)
-                          Gamma |- t0.i \in Ti
+                    Gamma |= t0 \in {..., i:Ti, ...}
+                    --------------------------------               (T_Proj)
+                          Gamma |= t0.i \in Ti
 *)
 
 (** There are several ways to approach formalizing the above
@@ -1332,90 +1337,90 @@ Definition context := partial_map ty.
 (** Next we define the typing rules.  These are nearly direct
     transcriptions of the inference rules shown above. *)
 
-Reserved Notation "Gamma '|-' t '\in' T" (at level 40, t custom stlc, T custom stlc_ty at level 0).
+Reserved Notation "Gamma '|=' t '\in' T" (at level 40, t custom stlc, T custom stlc_ty at level 0).
 
 Inductive has_type : context -> tm -> ty -> Prop :=
   (* pure STLC *)
   | T_Var : forall Gamma x T1,
       Gamma x = Some T1 ->
-      Gamma |- x \in T1
+      Gamma |= x \in T1
   | T_Abs : forall Gamma x T1 T2 t1,
-    (x |-> T2 ; Gamma) |- t1 \in T1 ->
-      Gamma |- \x:T2, t1 \in (T2 -> T1)
+    (x |-> T2 ; Gamma) |= t1 \in T1 ->
+      Gamma |= \x:T2, t1 \in (T2 -> T1)
   | T_App : forall T1 T2 Gamma t1 t2,
-      Gamma |- t1 \in (T2 -> T1) ->
-      Gamma |- t2 \in T2 ->
-      Gamma |- t1 t2 \in T1
+      Gamma |= t1 \in (T2 -> T1) ->
+      Gamma |= t2 \in T2 ->
+      Gamma |= t1 t2 \in T1
   (* numbers *)
   | T_Nat : forall Gamma (n : nat),
-      Gamma |- n \in Nat
+      Gamma |= n \in Nat
   | T_Succ : forall Gamma t,
-      Gamma |- t \in Nat ->
-      Gamma |- succ t \in Nat
+      Gamma |= t \in Nat ->
+      Gamma |= succ t \in Nat
   | T_Pred : forall Gamma t,
-      Gamma |- t \in Nat ->
-      Gamma |- pred t \in Nat
+      Gamma |= t \in Nat ->
+      Gamma |= pred t \in Nat
   | T_Mult : forall Gamma t1 t2,
-      Gamma |- t1 \in Nat ->
-      Gamma |- t2 \in Nat ->
-      Gamma |- t1 * t2 \in Nat
+      Gamma |= t1 \in Nat ->
+      Gamma |= t2 \in Nat ->
+      Gamma |= t1 * t2 \in Nat
   | T_If0 : forall Gamma t1 t2 t3 T0,
-      Gamma |- t1 \in Nat ->
-      Gamma |- t2 \in T0 ->
-      Gamma |- t3 \in T0 ->
-      Gamma |- if0 t1 then t2 else t3 \in T0
+      Gamma |= t1 \in Nat ->
+      Gamma |= t2 \in T0 ->
+      Gamma |= t3 \in T0 ->
+      Gamma |= if0 t1 then t2 else t3 \in T0
   (* sums *)
   | T_Inl : forall Gamma t1 T1 T2,
-      Gamma |- t1 \in T1 ->
-      Gamma |- (inl T2 t1) \in (T1 + T2)
+      Gamma |= t1 \in T1 ->
+      Gamma |= (inl T2 t1) \in (T1 + T2)
   | T_Inr : forall Gamma t2 T1 T2,
-      Gamma |- t2 \in T2 ->
-      Gamma |- (inr T1 t2) \in (T1 + T2)
+      Gamma |= t2 \in T2 ->
+      Gamma |= (inr T1 t2) \in (T1 + T2)
   | T_Case : forall Gamma t0 x1 T1 t1 x2 T2 t2 T3,
-      Gamma |- t0 \in (T1 + T2) ->
-      (x1 |-> T1 ; Gamma) |- t1 \in T3 ->
-      (x2 |-> T2 ; Gamma) |- t2 \in T3 ->
-      Gamma |- (case t0 of | inl x1 => t1 | inr x2 => t2) \in T3
+      Gamma |= t0 \in (T1 + T2) ->
+      (x1 |-> T1 ; Gamma) |= t1 \in T3 ->
+      (x2 |-> T2 ; Gamma) |= t2 \in T3 ->
+      Gamma |= (case t0 of | inl x1 => t1 | inr x2 => t2) \in T3
   (* lists *)
   | T_Nil : forall Gamma T1,
-      Gamma |- (nil T1) \in (List T1)
+      Gamma |= (nil T1) \in (List T1)
   | T_Cons : forall Gamma t1 t2 T1,
-      Gamma |- t1 \in T1 ->
-      Gamma |- t2 \in (List T1) ->
-      Gamma |- (t1 :: t2) \in (List T1)
+      Gamma |= t1 \in T1 ->
+      Gamma |= t2 \in (List T1) ->
+      Gamma |= (t1 :: t2) \in (List T1)
   | T_Lcase : forall Gamma t1 T1 t2 x1 x2 t3 T2,
-      Gamma |- t1 \in (List T1) ->
-      Gamma |- t2 \in T2 ->
-      (x1 |-> T1 ; x2 |-> <{{List T1}}> ; Gamma) |- t3 \in T2 ->
-      Gamma |- (case t1 of | nil => t2 | x1 :: x2 => t3) \in T2
+      Gamma |= t1 \in (List T1) ->
+      Gamma |= t2 \in T2 ->
+      (x1 |-> T1 ; x2 |-> <{{List T1}}> ; Gamma) |= t3 \in T2 ->
+      Gamma |= (case t1 of | nil => t2 | x1 :: x2 => t3) \in T2
   (* unit *)
   | T_Unit : forall Gamma,
-      Gamma |- unit \in Unit
+      Gamma |= unit \in Unit
 
   (* Add rules for the following extensions. *)
 
   (* pairs *)
   | T_Pair : forall Gamma t1 t2 T1 T2,
-      Gamma |- t1 \in T1 ->
-      Gamma |- t2 \in T2 ->
-      Gamma |- (t1, t2) \in (T1 * T2)
+      Gamma |= t1 \in T1 ->
+      Gamma |= t2 \in T2 ->
+      Gamma |= (t1, t2) \in (T1 * T2)
   | T_Fst : forall Gamma t T1 T2,
-      Gamma |- t \in (T1 * T2) ->
-      Gamma |- t.fst \in T1
+      Gamma |= t \in (T1 * T2) ->
+      Gamma |= t.fst \in T1
   | T_Snd : forall Gamma t T1 T2,
-      Gamma |- t \in (T1 * T2) ->
-      Gamma |- t.snd \in T2
+      Gamma |= t \in (T1 * T2) ->
+      Gamma |= t.snd \in T2
   (* let *)
   | T_Let : forall Gamma x t1 t2 T1 T2,
-      Gamma |- t1 \in T1 ->
-      (x |-> T1; Gamma) |- t2 \in T2 ->
-      Gamma |- (let x = t1 in t2) \in T2
+      Gamma |= t1 \in T1 ->
+      (x |=> T1; Gamma) |= t2 \in T2 ->
+      Gamma |= (let x = t1 in t2) \in T2
   (* fix *)
   | T_Fix : forall Gamma t T,
-      Gamma |- t \in (T -> T) ->
-      Gamma |- fix t \in T
+      Gamma |= t \in (T -> T) ->
+      Gamma |= fix t \in T
 
-where "Gamma '|-' t '\in' T" := (has_type Gamma t T).
+where "Gamma '|=' t '\in' T" := (has_type Gamma t T).
 
 Hint Constructors has_type : core.
 
@@ -1478,7 +1483,7 @@ Notation eo := "eo".
     [auto].
 
     The following [Hint] declarations say that, whenever [auto]
-    arrives at a goal of the form [(Gamma |- (tm_app e1 e1) \in T)], it
+    arrives at a goal of the form [(Gamma |= (tm_app e1 e1) \in T)], it
     should consider [eapply T_App], leaving an existential variable
     for the middle type T1, and similar for [lcase]. That variable
     will then be filled in during the search for type derivations for
@@ -1508,7 +1513,7 @@ Definition test :=
     else 6}>.
 
 Example typechecks :
-  empty |- test \in Nat.
+  empty |= test \in Nat.
 Proof.
   unfold test.
   (* This typing derivation is quite deep, so we need
@@ -1535,7 +1540,7 @@ Definition test :=
   <{((5,6),7).fst.snd}>.
 
 Example typechecks :
-  empty |- test \in Nat.
+  empty |= test \in Nat.
 Proof. unfold test. eauto 15. Qed.
 (* GRADE_THEOREM 0.25: typechecks *)
 
@@ -1559,7 +1564,7 @@ Definition test :=
     (succ x)}>.
 
 Example typechecks :
-  empty |- test \in Nat.
+  empty |= test \in Nat.
 Proof. unfold test. eauto 15. Qed.
 (* GRADE_THEOREM 0.25: typechecks *)
 
@@ -1587,7 +1592,7 @@ Definition test :=
     | inr y => y}>.
 
 Example typechecks :
-  empty |- test \in Nat.
+  empty |= test \in Nat.
 Proof. unfold test. eauto 15. Qed.
 
 Example reduces :
@@ -1616,7 +1621,7 @@ Definition test :=
     (processSum (inl Nat 5), processSum (inr Nat 5))}>.
 
 Example typechecks :
-  empty |- test \in (Nat * Nat).
+  empty |= test \in (Nat * Nat).
 Proof. unfold test. eauto 15. Qed.
 
 Example reduces :
@@ -1644,7 +1649,7 @@ Definition test :=
     | x :: y => (x * x)}>.
 
 Example typechecks :
-  empty |- test \in Nat.
+  empty |= test \in Nat.
 Proof. unfold test. eauto 20. Qed.
 
 Example reduces :
@@ -1674,7 +1679,7 @@ Definition fact :=
     rules wrong!) *)
 
 Example typechecks :
-  empty |- fact \in (Nat -> Nat).
+  empty |= fact \in (Nat -> Nat).
 Proof. unfold fact. auto 10. Qed.
 (* GRADE_THEOREM 0.25: typechecks *)
 
@@ -1707,7 +1712,7 @@ Definition map :=
                | x::l => ((g x)::(f l)))}>.
 
 Example typechecks :
-  empty |- map \in
+  empty |= map \in
     ((Nat -> Nat) -> ((List Nat) -> (List Nat))).
 Proof. unfold map. auto 10. Qed.
 (* GRADE_THEOREM 0.25: typechecks *)
@@ -1742,7 +1747,7 @@ Definition equal :=
                    else (eq (pred m) (pred n))))}>.
 
 Example typechecks :
-  empty |- equal \in (Nat -> Nat -> Nat).
+  empty |= equal \in (Nat -> Nat -> Nat).
 Proof. unfold equal. auto 10. Qed.
 (* GRADE_THEOREM 0.25: typechecks *)
 
@@ -1785,7 +1790,7 @@ Definition eotest :=
     (even 3, even 4)}>.
 
 Example typechecks :
-  empty |- eotest \in (Nat * Nat).
+  empty |= eotest \in (Nat * Nat).
 Proof. unfold eotest. eauto 30. Qed.
 (* GRADE_THEOREM 0.25: typechecks *)
 
@@ -1815,28 +1820,52 @@ End Examples.
 
     Complete the proof of [progress].
 
-    Theorem: Suppose empty |- t \in T.  Then either
+    Theorem: Suppose empty |= t \in T.  Then either
       1. t is a value, or
       2. t --> t' for some t'.
 
     Proof: By induction on the given typing derivation. *)
 
 Theorem progress : forall t T,
-     empty |- t \in T ->
+     empty |= t \in T ->
      value t \/ exists t', t --> t'.
 Proof with eauto.
   intros t T Ht.
   remember empty as Gamma.
   generalize dependent HeqGamma.
   induction Ht; intros HeqGamma; subst;
+  (*
+  repeat match goal with
+   |[IH: empty = empty -> _ |- _] =>
+   specialize (IH eq_refl) as [? | [? ?]]
+  end; try discriminate;
+  try (left; eauto using value; fail);
+  try (right; eexists; eauto; fail);
+  try (right;
+    match goal with
+    [ Hv: value ?E, 
+      Hty: _ |= ?E \in _ |- _] =>
+        destruct Hv; inversion Hty; subst 
+    end; eexists; eauto; fail);
+    try (right;
+    match goal with
+    [ Hv: value ?E,
+      Hty: empty |= ?E \in Nat 
+      |- context [<{if0 ?E then _ else _}>] ] => 
+           destruct Hv; inversion Hty; subst;
+           match goal with
+           [ Nt : nat |- _] => destruct Nt
+           end
+    end; eauto; fail).
+  *)
   try discriminate;
   try (left; eauto; fail);
   try (right; destruct IHHt; eauto; destruct H; try solve_by_invert; eauto; fail).
   - (* T_App *)
     (* If the last rule applied was T_App, then [t = t1 t2],
        and we know from the form of the rule that
-         [empty |- t1 \in T1 -> T2]
-         [empty |- t2 \in T1]
+         [empty |= t1 \in T1 -> T2]
+         [empty |= t2 \in T1]
        By the induction hypothesis, each of t1 and t2 either is
        a value or can take a step. *)
     right.
@@ -1964,8 +1993,8 @@ Definition manual_grade_for_progress : option (nat*string) := None.
 
 Lemma weakening : forall Gamma Gamma' t T,
      inclusion Gamma Gamma' ->
-     Gamma  |- t \in T  ->
-     Gamma' |- t \in T.
+     Gamma  |= t \in T  ->
+     Gamma' |= t \in T.
 Proof.
   intros Gamma Gamma' t T H Ht.
   generalize dependent Gamma'.
@@ -1973,8 +2002,8 @@ Proof.
 Qed.
 
 Lemma weakening_empty : forall Gamma t T,
-     empty |- t \in T  ->
-     Gamma |- t \in T.
+     empty |= t \in T  ->
+     Gamma |= t \in T.
 Proof.
   intros Gamma t T.
   eapply weakening.
@@ -1989,9 +2018,9 @@ Qed.
     Complete the proof of [substitution_preserves_typing]. *)
 
 Lemma substitution_preserves_typing : forall Gamma x U t v T,
-  (x |-> U ; Gamma) |- t \in T ->
-  empty |- v \in U   ->
-  Gamma |- [x:=v]t \in T.
+  (x |-> U ; Gamma) |= t \in T ->
+  empty |= v \in U   ->
+  Gamma |= [x:=v]t \in T.
 Proof with eauto.
   intros Gamma x U t v T Ht Hv.
   generalize dependent Gamma. generalize dependent T.
@@ -2087,9 +2116,9 @@ Definition manual_grade_for_substitution_preserves_typing : option (nat*string) 
     Complete the proof of [preservation]. *)
 
 Theorem preservation : forall t t' T,
-     empty |- t \in T  ->
+     empty |= t \in T  ->
      t --> t'  ->
-     empty |- t' \in T.
+     empty |= t' \in T.
 Proof with eauto.
   intros t t' T HT. generalize dependent t'.
   remember empty as Gamma.
