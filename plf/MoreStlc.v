@@ -1828,16 +1828,10 @@ Proof with eauto.
   intros t T Ht.
   remember empty as Gamma.
   generalize dependent HeqGamma.
-  induction Ht; intros HeqGamma; subst.
-  - (* T_Var *)
-    (* The final rule in the given typing derivation cannot be
-       [T_Var], since it can never be the case that
-       [empty |- x \in T] (since the context is empty). *)
-    discriminate H.
-  - (* T_Abs *)
-    (* If the [T_Abs] rule was the last used, then
-       [t = \ x0 : T2, t1], which is a value. *)
-    left...
+  induction Ht; intros HeqGamma; subst;
+  try discriminate;
+  try (left; eauto; fail);
+  try (right; destruct IHHt; eauto; destruct H; try solve_by_invert; eauto; fail).
   - (* T_App *)
     (* If the last rule applied was T_App, then [t = t1 t2],
        and we know from the form of the rule that
@@ -1864,26 +1858,6 @@ Proof with eauto.
       (* Finally, If [t1 --> t1'], then [t1 t2 --> t1' t2]
          by [ST_App1]. *)
       destruct H as [t1' Hstp]. exists <{t1' t2}>...
-  - (* T_Nat *)
-    left...
-  - (* T_Succ *)
-    right.
-    destruct IHHt...
-    + (* t1 is a value *)
-      destruct H; try solve_by_invert.
-      exists <{ {S n} }>...
-    + (* t1 steps *)
-      destruct H as [t' Hstp].
-      exists <{succ t'}>...
-  - (* T_Pred *)
-    right.
-    destruct IHHt...
-    + (* t1 is a value *)
-      destruct H; try solve_by_invert.
-      exists <{ {n - 1} }>...
-    + (* t1 steps *)
-      destruct H as [t' Hstp].
-      exists <{pred t'}>...
   - (* T_Mult *)
     right.
     destruct IHHt1...
@@ -1934,8 +1908,6 @@ Proof with eauto.
     + (* t0 steps *)
       destruct H as [t0' Hstp].
       exists <{case t0' of | inl x1 => t1 | inr x2 => t2}>...
-  - (* T_Nil *)
-    left...
   - (* T_Cons *)
     destruct IHHt1...
     + (* head is a value *)
@@ -1958,8 +1930,6 @@ Proof with eauto.
     + (* t1 steps *)
       destruct H as [t1' Hstp].
       exists <{case t1' of | nil => t2 | x1 :: x2 => t3}>...
-  - (* T_Unit *)
-    left...
 
   (* Complete the proof. *)
 
@@ -1974,35 +1944,11 @@ Proof with eauto.
     + (* t1 can take a step *)
       right. destruct H as [t1' H1].
       exists <{ (t1', t2) }>...
-  - (* T_Fst *)
-    right. destruct IHHt...
-    + (* t is a value *)
-      inversion Ht; subst; inversion H; subst.
-      exists <{ t1 }>...
-    + (* t can take a step *)
-      destruct H as [t' H].
-      exists <{ t'.fst }>...
-  - (* T_Snd *)
-    right. destruct IHHt...
-    + (* t is a value *)
-      inversion Ht; subst; inversion H; subst.
-      exists <{ t2 }>...
-    + (* t can take a step *)
-      destruct H as [t' H].
-      exists <{ t'.snd }>...
-      
+     
   (* let *)
   - right. destruct IHHt1...
     destruct H as [t1' H].
     exists <{ let x0 = t1' in t2 }>...
-  (* fix *)
-  - right. destruct IHHt...
-    + (* t is a value *)
-      inversion Ht; subst; inversion H; subst.
-      exists <{ [x0 := fix (\x0 : T, t1)] t1 }>...
-    + (* t can take a step *)
-      destruct H as [t' H].
-      exists <{ fix t' }>...
 Qed.
 
 (* Do not modify the following line: *)
