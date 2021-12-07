@@ -1413,7 +1413,7 @@ Inductive has_type : context -> tm -> ty -> Prop :=
   (* let *)
   | T_Let : forall Gamma x t1 t2 T1 T2,
       Gamma |= t1 \in T1 ->
-      (x |=> T1; Gamma) |= t2 \in T2 ->
+      (x |-> T1; Gamma) |= t2 \in T2 ->
       Gamma |= (let x = t1 in t2) \in T2
   (* fix *)
   | T_Fix : forall Gamma t T,
