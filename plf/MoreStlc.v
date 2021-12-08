@@ -1834,7 +1834,6 @@ Proof with eauto.
   remember empty as Gamma.
   generalize dependent HeqGamma.
   induction Ht; intros HeqGamma; subst;
-  (*
   repeat match goal with
    |[IH: empty = empty -> _ |- _] =>
    specialize (IH eq_refl) as [? | [? ?]]
@@ -1856,128 +1855,14 @@ Proof with eauto.
            match goal with
            [ Nt : nat |- _] => destruct Nt
            end
-    end; eauto; fail).
-  *)
-  try discriminate;
-  try (left; eauto; fail);
-  try (right; destruct IHHt; eauto; destruct H; try solve_by_invert; eauto; fail).
-  - (* T_App *)
-    (* If the last rule applied was T_App, then [t = t1 t2],
-       and we know from the form of the rule that
-         [empty |= t1 \in T1 -> T2]
-         [empty |= t2 \in T1]
-       By the induction hypothesis, each of t1 and t2 either is
-       a value or can take a step. *)
-    right.
-    destruct IHHt1; subst...
-    + (* t1 is a value *)
-      destruct IHHt2; subst...
-      * (* t2 is a value *)
-        (* If both [t1] and [t2] are values, then we know that
-           [t1 = \x0 : T0, t11], since abstractions are the
-           only values that can have an arrow type.  But
-           [(\x0 : T0, t11) t2 --> [x:=t2]t11] by [ST_AppAbs]. *)
-        destruct H; try solve_by_invert.
-        exists <{ [x0 := t2]t1 }>...
-      * (* t2 steps *)
-        (* If [t1] is a value and [t2 --> t2'],
-           then [t1 t2 --> t1 t2'] by [ST_App2]. *)
-        destruct H0 as [t2' Hstp]. exists <{t1 t2'}>...
-    + (* t1 steps *)
-      (* Finally, If [t1 --> t1'], then [t1 t2 --> t1' t2]
-         by [ST_App1]. *)
-      destruct H as [t1' Hstp]. exists <{t1' t2}>...
-  - (* T_Mult *)
-    right.
-    destruct IHHt1...
-    + (* t1 is a value *)
-      destruct IHHt2...
-      * (* t2 is a value *)
-        destruct H; try solve_by_invert.
-        destruct H0; try solve_by_invert.
-        exists <{ {n * n0} }>...
-      * (* t2 steps *)
-        destruct H0 as [t2' Hstp].
-        exists <{t1 * t2'}>...
-    + (* t1 steps *)
-      destruct H as [t1' Hstp].
-      exists <{t1' * t2}>...
-  - (* T_Test0 *)
-    right.
-    destruct IHHt1...
-    + (* t1 is a value *)
-      destruct H; try solve_by_invert.
-      destruct n as [|n'].
-      * (* n1=0 *)
-        exists t2...
-      * (* n1<>0 *)
-        exists t3...
-    + (* t1 steps *)
-      destruct H as [t1' H0].
-      exists <{if0 t1' then t2 else t3}>...
-  - (* T_Inl *)
-    destruct IHHt...
-    + (* t1 steps *)
-      right. destruct H as [t1' Hstp]...
-      (* exists (tm_inl _ t1')... *)
-  - (* T_Inr *)
-    destruct IHHt...
-    + (* t1 steps *)
-      right. destruct H as [t1' Hstp]...
-      (* exists (tm_inr _ t1')... *)
-  - (* T_Case *)
-    right.
-    destruct IHHt1...
-    + (* t0 is a value *)
-      destruct H; try solve_by_invert.
-      * (* t0 is inl *)
-        exists <{ [x1:=v]t1 }>...
-      * (* t0 is inr *)
-        exists <{ [x2:=v]t2 }>...
-    + (* t0 steps *)
-      destruct H as [t0' Hstp].
-      exists <{case t0' of | inl x1 => t1 | inr x2 => t2}>...
-  - (* T_Cons *)
-    destruct IHHt1...
-    + (* head is a value *)
-      destruct IHHt2...
-      * (* tail steps *)
-        right. destruct H0 as [t2' Hstp].
-        exists <{t1 :: t2'}>...
-    + (* head steps *)
-      right. destruct H as [t1' Hstp].
-      exists <{t1' :: t2}>...
-  - (* T_Lcase *)
-    right.
-    destruct IHHt1...
-    + (* t1 is a value *)
-      destruct H; try solve_by_invert.
-      * (* t1=tm_nil *)
-        exists t2...
-      * (* t1=tm_cons v1 v2 *)
-        exists <{ [x2:=v2]([x1:=v1]t3) }>...
-    + (* t1 steps *)
-      destruct H as [t1' Hstp].
-      exists <{case t1' of | nil => t2 | x1 :: x2 => t3}>...
-
-  (* Complete the proof. *)
-
-  (* pairs *)
-  - (* T_Pair *)
-    destruct IHHt1...
-    + (* t1 is a value *)
-      destruct IHHt2...
-      * (* t2 can take a step *)
-        right. destruct H0 as [t2' H2].
-        exists <{ (t1, t2') }>...
-    + (* t1 can take a step *)
-      right. destruct H as [t1' H1].
-      exists <{ (t1', t2) }>...
-     
-  (* let *)
-  - right. destruct IHHt1...
-    destruct H as [t1' H].
-    exists <{ let x0 = t1' in t2 }>...
+    end; eauto; fail). 
+  try (right;
+    repeat match goal with
+      [ Hv : value ?E,
+        Hnat : empty |= ?E \in Nat |- _ ] =>
+            destruct Hv; inversion Hnat; subst;
+            eauto; clear Hv Hnat
+    end; fail).
 Qed.
 
 (* Do not modify the following line: *)
