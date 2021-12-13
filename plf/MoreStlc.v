@@ -2007,45 +2007,15 @@ Theorem preservation : forall t t' T,
 Proof with eauto.
   intros t t' T HT. generalize dependent t'.
   remember empty as Gamma.
-  (* Proof: By induction on the given typing derivation.  Many
-     cases are contradictory ([T_Var], [T_Abs]).  We show just
-     the interesting ones. Again, we refer the reader to
-     StlcProp.v for explanations. *)
   induction HT;
-    intros t' HE; subst; inversion HE; subst...
-  - (* T_App *)
-    inversion HE; subst...
-    + (* ST_AppAbs *)
-      apply substitution_preserves_typing with T2...
-      inversion HT1...
-  (* T_Case *)
-  - (* ST_CaseInl *)
-    inversion HT1; subst.
-    eapply substitution_preserves_typing...
-  - (* ST_CaseInr *)
-    inversion HT1; subst.
-    eapply substitution_preserves_typing...
-  - (* T_Lcase *)
-    + (* ST_LcaseCons *)
-      inversion HT1; subst.
-      apply substitution_preserves_typing with <{{List T1}}>...
-      apply substitution_preserves_typing with T1...
-
-  (* Complete the proof. *)
-
-  - (* T_Fst *)
-    inversion HT; subst.
-    auto.
-  - (* T_Snd *)
-    inversion HT; subst.
-    auto.
-  (* let *)
-  - (* T_Let *)
-    eapply substitution_preserves_typing...
-  (* fix *)
-  - (* T_Fix *)
-    inversion HT; subst.
-    eapply substitution_preserves_typing...
+    intros t' HE; subst;
+    inversion HE; subst; eauto;
+    try match goal with
+      [ Htype: empty |= _ \in _ |- _ ] =>
+          inversion Htype; subst;
+          repeat eapply substitution_preserves_typing;
+          eauto
+    end.
 Qed.
 
 (* Do not modify the following line: *)
